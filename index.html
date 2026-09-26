@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ma Bijouterie</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg: var(--tg-theme-bg-color, #121212);
+    --text: var(--tg-theme-text-color, #f3ede2);
+    --hint: var(--tg-theme-hint-color, #9a9a9a);
+    --card: var(--tg-theme-secondary-bg-color, #1e1e20);
+    --gold: #c9a24b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    padding-bottom:100px;
+  }
+  header{padding:22px 16px 8px; text-align:center;}
+  header h1{margin:0; font-size:21px; letter-spacing:.5px; font-weight:700;}
+  header p{margin:6px 0 0; color:var(--hint); font-size:13px;}
+
+  .tabs{display:flex; gap:8px; padding:14px 16px 6px; overflow-x:auto;}
+  .tab{
+    flex:0 0 auto; padding:7px 16px; border-radius:20px;
+    background:var(--card); color:var(--text); font-size:13px;
+    border:1px solid transparent; white-space:nowrap; cursor:pointer;
+  }
+  .tab.active{border-color:var(--gold); color:var(--gold); font-weight:600;}
+
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:10px 16px;}
+  .card{
+    background:var(--card); border-radius:16px; padding:12px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .card .visual{
+    aspect-ratio:1; border-radius:12px; display:flex; align-items:center;
+    justify-content:center; font-size:36px;
+    background:linear-gradient(135deg, rgba(201,162,75,.15), rgba(201,162,75,.4));
+  }
+  .card h3{margin:0; font-size:14px; line-height:1.3;}
+  .card .price{color:var(--gold); font-weight:700; font-size:14px;}
+
+  .qty-row{display:flex; align-items:center; justify-content:space-between;}
+  .qty-btn{
+    width:30px; height:30px; border-radius:9px; border:none;
+    background:var(--gold); color:#151515; font-size:17px; font-weight:800;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .qty-val{font-size:14px; min-width:20px; text-align:center; font-weight:600;}
+  .add-btn{
+    border:none; border-radius:11px; padding:9px; background:var(--gold);
+    color:#151515; font-weight:700; font-size:13px; width:100%;
+  }
+
+  footer.note{padding:18px; text-align:center; color:var(--hint); font-size:11px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>✨ Nom de ta boutique</h1>
+  <p>Bijoux faits main — livraison sous 3 à 5 jours</p>
+</header>
+
+<div class="tabs" id="tabs"></div>
+<div class="grid" id="grid"></div>
+<footer class="note">Le paiement se règle directement avec la vendeuse après validation de la commande.</footer>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+// ------------------------------------------------------------------
+// 1) TES PRODUITS — modifie librement cette liste (nom, prix, emoji, catégorie)
+// ------------------------------------------------------------------
+const PRODUCTS = [
+  {id:'c1', cat:'Colliers', name:'Collier Étoile',                price:24.90, emoji:'📿'},
+  {id:'c2', cat:'Colliers', name:'Collier Perle Fine',             price:29.90, emoji:'📿'},
+  {id:'b1', cat:'Bracelets', name:'Bracelet Doré',                 price:18.50, emoji:'⛓️'},
+  {id:'b2', cat:'Bracelets', name:'Bracelet Perles',               price:16.90, emoji:'⛓️'},
+  {id:'r1', cat:'Bagues', name:'Bague Solitaire',                  price:15.90, emoji:'💍'},
+  {id:'r2', cat:'Bagues', name:'Bague Torsadée',                   price:14.50, emoji:'💍'},
+  {id:'e1', cat:'Boucles', name:"Boucles d'oreilles Créoles",      price:19.90, emoji:'✨'},
+  {id:'e2', cat:'Boucles', name:"Boucles d'oreilles Perle",        price:17.90, emoji:'✨'},
+];
+
+const CATS = ['Tous', ...new Set(PRODUCTS.map(p=>p.cat))];
+let activeCat = 'Tous';
+const cart = {}; // { id: quantite }
+
+const tabsEl = document.getElementById('tabs');
+const gridEl = document.getElementById('grid');
+
+function renderTabs(){
+  tabsEl.innerHTML = '';
+  CATS.forEach(cat=>{
+    const el = document.createElement('div');
+    el.className = 'tab' + (cat === activeCat ? ' active' : '');
+    el.textContent = cat;
+    el.onclick = () => { activeCat = cat; renderTabs(); renderGrid(); };
+    tabsEl.appendChild(el);
+  });
+}
+
+function renderGrid(){
+  gridEl.innerHTML = '';
+  const list = activeCat === 'Tous' ? PRODUCTS : PRODUCTS.filter(p=>p.cat===activeCat);
+  list.forEach(p=>{
+    const qty = cart[p.id] || 0;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="visual">${p.emoji}</div>
+      <h3>${p.name}</h3>
+      <div class="price">${p.price.toFixed(2)} €</div>
+      ${qty === 0
+        ? `<button class="add-btn" data-add="${p.id}">Ajouter</button>`
+        : `<div class="qty-row">
+             <button class="qty-btn" data-sub="${p.id}">−</button>
+             <span class="qty-val">${qty}</span>
+             <button class="qty-btn" data-add="${p.id}">+</button>
+           </div>`
+      }
+    `;
+    gridEl.appendChild(card);
+  });
+
+  gridEl.querySelectorAll('[data-add]').forEach(btn=>{
+    btn.onclick = () => { const id=btn.dataset.add; cart[id]=(cart[id]||0)+1; renderGrid(); updateMainButton(); };
+  });
+  gridEl.querySelectorAll('[data-sub]').forEach(btn=>{
+    btn.onclick = () => { const id=btn.dataset.sub; cart[id]=Math.max(0,(cart[id]||0)-1); renderGrid(); updateMainButton(); };
+  });
+}
+
+function cartItems(){
+  return Object.entries(cart)
+    .filter(([id,q])=>q>0)
+    .map(([id,q])=>{ const p = PRODUCTS.find(x=>x.id===id); return {name:p.name, price:p.price, qty:q}; });
+}
+function cartTotal(){
+  return cartItems().reduce((s,it)=>s + it.price*it.qty, 0);
+}
+
+function updateMainButton(){
+  const total = cartTotal();
+  if (total <= 0){
+    tg.MainButton.hide();
+  } else {
+    tg.MainButton.setText(`Valider — ${total.toFixed(2)} €`);
+    tg.MainButton.show();
+  }
+}
+
+tg.MainButton.onClick(async () => {
+  const items = cartItems();
+  const total = cartTotal();
+  if (items.length === 0) return;
+
+  tg.MainButton.showProgress();
+  try {
+    const res = await fetch('/api/order', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ items, total, initData: tg.initData })
+    });
+    const data = await res.json();
+    tg.MainButton.hideProgress();
+
+    if (data.ok) {
+      tg.showAlert('Commande envoyée ! Vous serez recontacté(e) rapidement.', () => tg.close());
+    } else {
+      tg.showAlert("Erreur lors de l'envoi de la commande. Réessaie dans un instant.");
+    }
+  } catch (e) {
+    tg.MainButton.hideProgress();
+    tg.showAlert('Erreur réseau. Vérifie ta connexion et réessaie.');
+  }
+});
+
+renderTabs();
+renderGrid();
+updateMainButton();
+</script>
+</body>
+</html>
