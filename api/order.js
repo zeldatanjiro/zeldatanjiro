@@ -48,22 +48,22 @@ module.exports = async (req, res) => {
   const userJson = params.get('user');
   const user = userJson ? JSON.parse(userJson) : {};
 
-  let text = `🛍 *Nouvelle commande*\n\n`;
-  text += `👤 ${(user.first_name || '') + ' ' + (user.last_name || '')}`.trim();
-  if (user.username) text += ` (@${user.username})`;
-  text += `\nID Telegram : \`${user.id}\`\n\n`;
+  // Message simple, en texte brut (pas de Markdown : évite les erreurs avec les pseudos)
+  const name = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Client';
+  let text = `Nouvelle commande\n\n`;
+  text += `${name}${user.username ? ` (@${user.username})` : ''}\n`;
+  text += `ID : ${user.id}\n\n`;
   items.forEach(it => {
-    text += `• ${it.name} x${it.qty} — ${(it.price * it.qty).toFixed(2)} €\n`;
+    text += `${it.name} x${it.qty} : ${(it.price * it.qty).toFixed(2)} €\n`;
   });
-  text += `\n💰 *Total : ${Number(total).toFixed(2)} €*`;
+  text += `\nTotal : ${Number(total).toFixed(2)} €`;
 
   const tgRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       chat_id: OWNER_CHAT_ID,
-      text,
-      parse_mode: 'Markdown'
+      text
     })
   });
   const tgData = await tgRes.json();
