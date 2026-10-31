@@ -118,6 +118,17 @@
   .chip span{font-size:12px; color:var(--muted); font-weight:700;}
   .chip.on{border-color:var(--yellow); background:var(--yellow); color:var(--ink);}
   .chip.on span{color:var(--ink);}
+  .chip small{font-size:11px; color:var(--muted); font-weight:600;}
+  .chip.on small{color:var(--ink); opacity:.75;}
+  .chip .best{
+    display:block; background:var(--pink); color:#fff; font-style:normal; font-size:9px; font-weight:800;
+    letter-spacing:1px; text-transform:uppercase; padding:2px 6px; margin-bottom:2px; white-space:nowrap;
+  }
+  .chip.on .best{background:var(--ink); color:var(--yellow);}
+  .saving{
+    margin:12px 0 0; font-size:13px; font-weight:700; color:var(--yellow);
+    border-left:3px solid var(--yellow); padding:4px 0 4px 10px;
+  }
   .qrow{display:flex; align-items:center; justify-content:space-between; gap:12px;}
   .ptotal{font-family:"Anton",Impact,sans-serif; font-size:30px; color:var(--yellow); letter-spacing:.5px;}
 
@@ -186,8 +197,8 @@ try { tg.setHeaderColor('#070707'); tg.setBackgroundColor('#070707'); } catch (e
 // ------------------------------------------------------------------
 const PRODUCTS = [
   {id:'lemon', cat:'Fleurs', name:'Lemon Synth', img:'images/lemon-synth.svg', featured:true,
-   desc:'Notre produit phare. Description à compléter.',
-   options:[{g:3, price:30}, {g:5, price:50}, {g:10, price:100}]},
+   desc:'Notre produit phare. Plus tu prends de grammes, moins le gramme te coûte cher. Description à compléter.',
+   options:[{g:3, price:30}, {g:5, price:45}, {g:10, price:85}]},
   {id:'fleur-premium', cat:'Fleurs', name:'Fleur Premium', img:'images/fleur-premium.svg',
    desc:'Description à compléter.',
    options:[{g:3, price:36}, {g:5, price:60}, {g:10, price:110}]},
@@ -279,6 +290,19 @@ function shopHTML(){
     </button>`;
 }
 
+// Format le plus avantageux au gramme (prix dégressif)
+function bestValue(p){
+  return p.options.reduce((best, o) => (o.price / o.g < best.price / best.g ? o : best));
+}
+
+// Économie réelle par rapport au prix au gramme du plus petit format
+function savingsLine(p, opt){
+  const base = p.options[0];
+  const saved = base.price / base.g * opt.g - opt.price;
+  if (opt === base || saved <= 0.005) return '';
+  return `<p class="saving">Tu économises ${fmt(saved)} par rapport au prix du ${base.g} g.</p>`;
+}
+
 function productHTML(){
   const p = findP(view.id);
   const opt = p.options.find(o => o.g === pick.g);
@@ -293,9 +317,12 @@ function productHTML(){
         <div class="chips">
           ${p.options.map(o => `
             <button type="button" class="chip ${o.g === pick.g ? 'on' : ''}" data-g="${o.g}">
+              ${o.g === bestValue(p).g ? '<em class="best">Meilleur prix/g</em>' : ''}
               <b>${o.g} g</b><span>${fmt(o.price)}</span>
+              <small>${fmt(o.price / o.g)}/g</small>
             </button>`).join('')}
         </div>
+        ${savingsLine(p, opt)}
 
         <div class="label">Quantité</div>
         <div class="qrow">

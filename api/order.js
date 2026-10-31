@@ -6,7 +6,7 @@ const crypto = require('crypto');
 // Le client n'envoie que { id, g, qty } : jamais de prix ni de total.
 // ------------------------------------------------------------------
 const CATALOG = new Map([
-  ['lemon',          { name: 'Lemon Synth',    prices: new Map([[3, 30], [5, 50], [10, 100]]) }],
+  ['lemon',          { name: 'Lemon Synth',    prices: new Map([[3, 30], [5, 45], [10, 85]]) }],
   ['fleur-premium',  { name: 'Fleur Premium',  prices: new Map([[3, 36], [5, 60], [10, 110]]) }],
   ['resine-classic', { name: 'Résine Classic', prices: new Map([[1, 12], [3, 30], [5, 45]]) }],
   ['resine-premium', { name: 'Résine Premium', prices: new Map([[1, 14], [3, 36], [5, 55]]) }],
