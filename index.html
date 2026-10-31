@@ -154,6 +154,18 @@
   .cart-empty h2{margin:0 0 8px; font-size:34px;}
   .cart-empty p{color:var(--muted); margin:0 0 22px;}
 
+  /* Produit phare : bandeau jaune, carte pleine largeur */
+  .star{
+    position:absolute; top:10px; right:10px; background:var(--yellow); color:var(--ink);
+    font-size:11px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+    padding:4px 9px; transform:skewX(-10deg); box-shadow:0 0 0 2px var(--ink);
+  }
+  .star span{display:inline-block; transform:skewX(10deg);}
+  .card.featured{grid-column:1 / -1; border-color:var(--yellow);}
+  .card.featured .visual{aspect-ratio:16/9;}
+  .card.featured .name{font-size:34px;}
+  .card.featured .from b{font-size:18px;}
+
   footer.note{padding:20px; text-align:center; color:var(--muted); font-size:11px; letter-spacing:2px; text-transform:uppercase;}
 </style>
 </head>
@@ -173,8 +185,8 @@ try { tg.setHeaderColor('#070707'); tg.setBackgroundColor('#070707'); } catch (e
 // img = chemin vers l'image du produit (dossier images/)
 // ------------------------------------------------------------------
 const PRODUCTS = [
-  {id:'lemon', cat:'Fleurs', name:'Lemon Scent', img:'images/lemon-scent.svg',
-   desc:'Fleur au parfum citron. Description à compléter.',
+  {id:'lemon', cat:'Fleurs', name:'Lemon Synth', img:'images/lemon-synth.svg', featured:true,
+   desc:'Notre produit phare. Description à compléter.',
    options:[{g:3, price:30}, {g:5, price:50}, {g:10, price:100}]},
   {id:'fleur-premium', cat:'Fleurs', name:'Fleur Premium', img:'images/fleur-premium.svg',
    desc:'Description à compléter.',
@@ -235,7 +247,9 @@ function home(){
 }
 
 function shopHTML(){
-  const list = activeCat === 'Tous' ? PRODUCTS : PRODUCTS.filter(p => p.cat === activeCat);
+  // Le produit phare passe toujours en premier, en pleine largeur
+  const list = (activeCat === 'Tous' ? PRODUCTS : PRODUCTS.filter(p => p.cat === activeCat))
+    .slice().sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
   const n = cartCount();
   return `
     <header class="hero">
@@ -249,8 +263,8 @@ function shopHTML(){
       ${list.map(p => {
         const min = Math.min(...p.options.map(o => o.price));
         return `
-        <div class="card" data-open="${p.id}" role="button" tabindex="0">
-          <div class="visual"><img src="${p.img}" alt="${p.name}"><span class="tag"><span>${p.cat}</span></span></div>
+        <div class="card ${p.featured ? 'featured' : ''}" data-open="${p.id}" role="button" tabindex="0">
+          <div class="visual"><img src="${p.img}" alt="${p.name}"><span class="tag"><span>${p.cat}</span></span>${p.featured ? '<span class="star"><span>Produit phare</span></span>' : ''}</div>
           <div class="info">
             <h3 class="name display">${p.name}</h3>
             <div class="from">dès <b>${fmt(min)}</b></div>
@@ -270,7 +284,7 @@ function productHTML(){
   const opt = p.options.find(o => o.g === pick.g);
   return `
     <section class="pdp">
-      <div class="pvisual"><img src="${p.img}" alt="${p.name}"><span class="tag"><span>${p.cat}</span></span></div>
+      <div class="pvisual"><img src="${p.img}" alt="${p.name}"><span class="tag"><span>${p.cat}</span></span>${p.featured ? '<span class="star"><span>Produit phare</span></span>' : ''}</div>
       <div class="pbody">
         <h1 class="ptitle display">${p.name}</h1>
         <p class="pdesc">${p.desc}</p>
