@@ -91,14 +91,15 @@ tg.expand();
 // 1) TES PRODUITS — modifie librement cette liste (nom, prix, emoji, catégorie)
 // ------------------------------------------------------------------
 const PRODUCTS = [
-  {id:'c1', cat:'Verte', name:'LEMON SYNTH',                price:24.90, emoji:'📿'},
-  {id:'c2', cat:'Verte', name:'Cookie Tropicana',             price:29.90, emoji:'📿'},
-  {id:'b1', cat:'Bracelets', name:'Bracelet Doré',                 price:18.50, emoji:'⛓️'},
-  {id:'b2', cat:'Bracelets', name:'Bracelet Perles',               price:16.90, emoji:'⛓️'},
-  {id:'r1', cat:'Bagues', name:'Bague Solitaire',                  price:15.90, emoji:'💍'},
-  {id:'r2', cat:'Bagues', name:'Bague Torsadée',                   price:14.50, emoji:'💍'},
-  {id:'e1', cat:'Boucles', name:"Boucles d'oreilles Créoles",      price:19.90, emoji:'✨'},
-  {id:'e2', cat:'Boucles', name:"Boucles d'oreilles Perle",        price:17.90, emoji:'✨'},
+  // Produits d'exemple (fictifs) : remplace par tes vrais produits CBD
+  {id:'f1', cat:'Fleurs', name:'Fleur CBD Classic 2g',        price:9.90,  emoji:'🌿'},
+  {id:'f2', cat:'Fleurs', name:'Fleur CBD Premium 5g',        price:24.90, emoji:'🌿'},
+  {id:'h1', cat:'Huiles', name:'Huile CBD 5% 10ml',           price:19.90, emoji:'💧'},
+  {id:'h2', cat:'Huiles', name:'Huile CBD 10% 10ml',          price:34.90, emoji:'💧'},
+  {id:'i1', cat:'Infusions', name:'Infusion Relax 20 sachets', price:12.50, emoji:'🍵'},
+  {id:'i2', cat:'Infusions', name:'Infusion Menthe Détente',   price:11.90, emoji:'🍃'},
+  {id:'c1', cat:'Cosmétiques', name:'Baume CBD Apaisant 30ml',  price:14.90, emoji:'🧴'},
+  {id:'c2', cat:'Cosmétiques', name:'Crème CBD Hydratante 50ml', price:16.90, emoji:'🧴'},
 ];
 
 const CATS = ['Tous', ...new Set(PRODUCTS.map(p=>p.cat))];
