@@ -392,19 +392,19 @@ async function submitOrder(){
     const res = await fetch('/api/order', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
+      // Le serveur recalcule les prix : on n'envoie ni prix ni total
       body: JSON.stringify({
-        items: items.map(l => ({ name: l.name, price: l.price, qty: l.qty })),
-        total: cartTotal(),
+        items: items.map(l => ({ id: l.p.id, g: l.g, qty: l.qty })),
         initData: tg.initData
       })
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (data.ok){
       for (const k of Object.keys(cart)) delete cart[k];
       render();
       tg.showAlert('Commande envoyée ! Vous serez recontacté(e) rapidement.', () => tg.close());
     } else {
-      tg.showAlert("Erreur lors de l'envoi de la commande. Réessaie dans un instant.");
+      tg.showAlert(data.error || "Erreur lors de l'envoi de la commande. Réessaie dans un instant.");
     }
   } catch (e) {
     tg.showAlert('Erreur réseau. Vérifie ta connexion et réessaie.');
